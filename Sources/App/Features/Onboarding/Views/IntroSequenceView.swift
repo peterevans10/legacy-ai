@@ -119,6 +119,16 @@ class IntroSequenceViewModel: ObservableObject {
                     try videoData.data.write(to: videoURL)
                     videoPlayer = AVPlayer(url: videoURL)
                     videoPlayer?.isMuted = true
+                    
+                    // Configure video player for looping background playback
+                    videoPlayer?.actionAtItemEnd = .none
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,
+                                                        object: videoPlayer?.currentItem,
+                                                        queue: .main) { [weak self] _ in
+                        self?.videoPlayer?.seek(to: .zero)
+                        self?.videoPlayer?.play()
+                    }
+                    
                     print("✅ Video player created successfully")
                     return
                 } catch {
@@ -189,71 +199,67 @@ class IntroSequenceViewModel: ObservableObject {
 
 struct IntroSequenceView: View {
     @StateObject private var viewModel = IntroSequenceViewModel()
-    @Environment(\.dismiss) private var dismiss
-    let completion: (() -> Void)?
-    
-    init(completion: (() -> Void)? = nil) {
-        self.completion = completion
-    }
+    var completion: (() -> Void)?
     
     var body: some View {
         ZStack {
-            // Default white background
-            Color.white
-                .edgesIgnoringSafeArea(.all)
-            
-            // Background Video Layer
+            // Background video
             if let player = viewModel.videoPlayer {
                 VideoPlayer(player: player)
-                    .edgesIgnoringSafeArea(.all)
+                    .disabled(true)  // Prevent interaction with video
+                    .allowsHitTesting(false)  // Prevent hit testing
+                    .aspectRatio(16/9, contentMode: .fill)
+                    .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+                    .clipped()
+                    .ignoresSafeArea()
                     .opacity(viewModel.videoOpacity)
+                    // .overlay(
+                    //     Rectangle()
+                    //         .fill(Color.black.opacity(0.4))  // Darken video for better text contrast
+                    //         .edgesIgnoringSafeArea(.all)
+                    // )
             }
             
-            // Content Layer
-            GeometryReader { geometry in
-                ZStack {
-                    // Current Scene Content
-                    if let currentScene = viewModel.currentScene {
-                        switch currentScene.type {
-                        case .text(let text):
-                            TypewriterText(text: text,
-                                         isVisible: viewModel.isCurrentSceneActive,
-                                         completion: viewModel.handleSceneCompletion)
-                                .font(.custom("PlayfairDisplay-Bold", size: 42))
-                                .foregroundColor(.black)
-                                .shadow(radius: 0)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 40)
-                        
-                        case .imageStack(let images):
-                            ImageStackView(images: images,
-                                         isVisible: viewModel.isCurrentSceneActive,
-                                         completion: viewModel.handleSceneCompletion)
-                        
-                        case .imageRotation(let images):
-                            ImageRotationView(images: images,
-                                            isVisible: viewModel.isCurrentSceneActive,
-                                            completion: viewModel.handleSceneCompletion)
-                        
-                        case .imageFade(let images):
-                            ImageFadeView(images: images,
+            // Content overlay
+            if let scene = viewModel.currentScene {
+                switch scene.type {
+                case .text(let text):
+                    TypewriterText(text: text,
+                                 isActive: viewModel.isCurrentSceneActive,
+                                 font: .custom("PlayfairDisplay-Regular", size: 60),
+                                 foregroundColor: Color(red: 233/255, green: 200/255, blue: 140/255),
+                                 speed: 0.075,
+                                 completion: viewModel.handleSceneCompletion)
+                        .padding(.horizontal, 24)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                
+                case .imageStack(let images):
+                    ImageStackView(images: images,
+                                 isVisible: viewModel.isCurrentSceneActive,
+                                 completion: viewModel.handleSceneCompletion)
+                
+                case .imageRotation(let images):
+                    ImageRotationView(images: images,
+                                    isVisible: viewModel.isCurrentSceneActive,
+                                    completion: viewModel.handleSceneCompletion)
+                
+                case .imageFade(let images):
+                    ImageFadeView(images: images,
                                         isVisible: viewModel.isCurrentSceneActive,
                                         completion: viewModel.handleSceneCompletion)
-                        
-                        case .composite(let text, let images):
-                            CompositeView(text: text,
+                
+                case .composite(let text, let images):
+                    CompositeView(text: text,
                                         images: images,
                                         isVisible: viewModel.isCurrentSceneActive,
                                         completion: viewModel.handleSceneCompletion)
-                        
-                        case .video:
-                            EmptyView()
-                        }
-                    }
+                
+                case .video:
+                    EmptyView()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .background(Color.black)
         .onAppear {
             viewModel.startSequence()
         }
@@ -269,7 +275,10 @@ struct IntroSequenceView: View {
 
 struct TypewriterText: View {
     let text: String
-    let isVisible: Bool
+    let isActive: Bool
+    let font: Font
+    let foregroundColor: Color
+    let speed: Double
     let completion: () -> Void
     
     @State private var displayedText = ""
@@ -277,8 +286,10 @@ struct TypewriterText: View {
     
     var body: some View {
         Text(displayedText)
+            .font(font)
+            .foregroundColor(foregroundColor)
             .multilineTextAlignment(.leading)
-            .onChange(of: isVisible) { newValue in
+            .onChange(of: isActive) { newValue in
                 if newValue {
                     startTyping()
                 }
@@ -288,7 +299,7 @@ struct TypewriterText: View {
     private func startTyping() {
         guard currentIndex == 0 else { return }
         
-        Timer.scheduledTimer(withTimeInterval: 0.075, repeats: true) { timer in
+        Timer.scheduledTimer(withTimeInterval: speed, repeats: true) { timer in
             if currentIndex < text.count {
                 let index = text.index(text.startIndex, offsetBy: currentIndex)
                 displayedText += String(text[index])
