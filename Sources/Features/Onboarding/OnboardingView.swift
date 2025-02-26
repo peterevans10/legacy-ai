@@ -24,18 +24,6 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            // Background image with overlay
-            GeometryReader { geometry in
-                Image("library_corridor")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .overlay(LegacyTheme.Gradients.subtleOverlay)
-                    .ignoresSafeArea()
-            }
-            .ignoresSafeArea()
-            
             // Content
             VStack {
                 Spacer()
