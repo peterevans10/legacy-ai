@@ -81,6 +81,7 @@ enum HapticPattern {
     case impact         // Strong impact for dramatic moments
     case none          // No haptic feedback
     case success
+    case subtle
 }
 
 // MARK: - Configuration
@@ -95,19 +96,19 @@ struct IntroSequenceConfig {
     
     /// Complete sequence of scenes
     static let scenes: [IntroScene] = [
-        // Scene 1: "Greatness"
+        // Scene 1: "Legacy"
         IntroScene(
-            id: "greatness",
-            duration: 2.0,
-            type: .text("Greatness"),
+            id: "legacy",
+            duration: 4.0,
+            type: .text("Legacy"),
             assets: SceneAssets(images: nil, videoURL: nil, audioURL: nil),
             animation: AnimationConfig(
                 type: .typewriter,
-                duration: 1.5,
-                curve: CAMediaTimingFunction(name: .easeInEaseOut),
-                delay: 0.5
+                duration: 1.0,
+                curve: CAMediaTimingFunction(name: .default),
+                delay: 0.0
             ),
-            haptics: .typing
+            haptics: .subtle
         ),
         
         // Scene 2: Jordan Photo Montage

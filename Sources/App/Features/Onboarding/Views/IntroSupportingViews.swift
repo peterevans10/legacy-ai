@@ -14,12 +14,15 @@ struct ImageRotationView: View {
                 ForEach(Array(images.enumerated()), id: \.0) { index, imageName in
                     Image(imageName)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: geometry.size.width * 0.8)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
                         .opacity(index == currentIndex ? 1 : 0)
                         .offset(x: index == currentIndex ? 0 : offset)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
             .onChange(of: isVisible) { newValue in
                 if newValue {
                     startRotation()

@@ -38,23 +38,36 @@ class IntroSequenceViewModel: ObservableObject {
         videoPlayer?.play()
         print("🎥 Video player status: \(videoPlayer?.status.rawValue ?? -1)")
         
-        // Fade in video
-        withAnimation(.easeIn(duration: 0.5)) {
+        // Start with volume at 0
+        audioPlayer?.volume = 0
+        audioPlayer?.currentTime = 0
+        audioPlayer?.play()
+        
+        // Fade in video and audio over 5 seconds
+        withAnimation(.easeInOut(duration: 5.0)) {
             videoOpacity = 1
         }
         
+        // Gradually increase audio volume
         if let audioPlayer = audioPlayer {
-            audioPlayer.currentTime = 0
-            audioPlayer.play()
-            print("🔊 Audio player: Started playing, volume: \(audioPlayer.volume), duration: \(audioPlayer.duration)")
-        } else {
-            print("❌ Audio player is nil!")
+            let steps = 50 // More steps for smoother fade
+            let targetVolume: Float = 0.8
+            let stepDuration = 5.0 / Double(steps)
+            
+            for i in 0...steps {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * stepDuration) {
+                    // Use easeInOut curve for audio fade
+                    let progress = Float(i) / Float(steps)
+                    let easedProgress = sin(Double(progress) * .pi / 2) // Smooth easing curve
+                    audioPlayer.volume = Float(easedProgress) * targetVolume
+                }
+            }
         }
         
         // Since we're starting with the first scene already visible,
         // schedule the next scene after the first scene's duration
-        if let firstScene = currentScene {
-            DispatchQueue.main.asyncAfter(deadline: .now() + firstScene.duration) {
+        if let duration = currentScene?.duration {
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
                 self.handleSceneCompletion()
             }
         }
@@ -62,12 +75,30 @@ class IntroSequenceViewModel: ObservableObject {
     
     func stopSequence() {
         print("⏹️ Stopping sequence...")
-        videoPlayer?.pause()
-        audioPlayer?.stop()
         
-        // Fade out video if it's showing
+        // Fade out video and audio
         withAnimation(.easeOut(duration: 0.5)) {
             videoOpacity = 0
+        }
+        
+        // Fade out audio
+        if let audioPlayer = audioPlayer {
+            let steps = 10
+            let stepDuration = 0.5 / Double(steps)
+            let initialVolume = audioPlayer.volume
+            
+            for i in 0...steps {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * stepDuration) {
+                    let progress = Float(steps - i) / Float(steps)
+                    audioPlayer.volume = progress * initialVolume
+                }
+            }
+        }
+        
+        // Stop playback after fade
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.videoPlayer?.pause()
+            self.audioPlayer?.stop()
         }
     }
     
@@ -228,7 +259,8 @@ struct IntroSequenceView: View {
                                  isActive: viewModel.isCurrentSceneActive,
                                  font: .custom("PlayfairDisplay-Regular", size: 60),
                                  foregroundColor: Color(red: 233/255, green: 200/255, blue: 140/255),
-                                 speed: 0.075,
+                                 speed: 0.1,
+                                 endPauseDuration: 2.0,
                                  completion: viewModel.handleSceneCompletion)
                         .padding(.horizontal, 24)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -279,6 +311,7 @@ struct TypewriterText: View {
     let font: Font
     let foregroundColor: Color
     let speed: Double
+    let endPauseDuration: Double
     let completion: () -> Void
     
     @State private var displayedText = ""
@@ -307,7 +340,7 @@ struct TypewriterText: View {
                 HapticManager.shared.playTypewriterFeedback()
             } else {
                 timer.invalidate()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + endPauseDuration) {
                     completion()
                 }
             }
