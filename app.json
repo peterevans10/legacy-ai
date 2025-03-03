@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "expo-app-boilerplate",
-    "slug": "expo-app-boilerplate",
+    "name": "legacy-ai",
+    "slug": "legacy-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "legacy-ai",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cqjack.expoappboilerplate",
+      "bundleIdentifier": "com.legacyai.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.cqjack.expoappboilerplate"
+      "package": "com.legacyai.app"
     },
     "web": {
       "bundler": "metro",
@@ -47,7 +47,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "e55fcdea-13e2-4c3b-a4c3-59c174184eb5"
+        "projectId": "fce83078-910a-4e30-aef2-807cbb60d2ff"
       }
     }
   }

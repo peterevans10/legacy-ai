@@ -1,4 +1,4 @@
-package com.cqjack.expoappboilerplate
+package com.legacyai.app
 
 import android.app.Application
 import android.content.res.Configuration
