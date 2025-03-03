@@ -27,7 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>myapp</string>
+          <string>legacy-ai</string>
           <string>com.legacyai.app</string>
         </array>
       </dict>

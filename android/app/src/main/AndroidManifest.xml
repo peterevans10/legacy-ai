@@ -27,6 +27,7 @@
         <data android:scheme="myapp"/>
         <data android:scheme="com.legacyai.app"/>
         <data android:scheme="exp+legacy-ai"/>
+        <data android:scheme="legacy-ai"/>
       </intent-filter>
     </activity>
   </application>

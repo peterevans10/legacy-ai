@@ -6,34 +6,46 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
+import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const [fontsLoaded] = useFonts({
+    PlayfairDisplay_400Regular,
+    PlayfairDisplay_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+  });
 
   const handleNext = () => {
-    router.push('/onboarding/problem');
+    router.push('/onboarding/phone');
   };
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <ThemedView style={styles.container}>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           <View style={styles.main}>
-            <MaterialCommunityIcons name="star" size={64} color="#0A7EA4" />
-            <ThemedText type="title" style={styles.title}>
-              Your App Name
+            <MaterialCommunityIcons name="book-open-page-variant" size={64} color="#BF9B30" />
+            <ThemedText style={styles.title}>
+              Legacy AI
             </ThemedText>
             <View style={styles.subtitleContainer}>
               <ThemedText style={styles.subtitle}>
-                A short, compelling tagline that captures your app's value
+                Document your personal legacy through daily questions and shared stories
               </ThemedText>
             </View>
           </View>
 
           <TouchableOpacity style={styles.button} onPress={handleNext}>
-            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-              Get Started
+            <ThemedText style={styles.buttonText}>
+              Begin Your Legacy
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -45,6 +57,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F5F1E8', // Aged Paper
   },
   safeArea: {
     flex: 1,
@@ -53,7 +66,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'space-between',
-    paddingVertical: 24,
+    paddingVertical: 48,
   },
   main: {
     flex: 1,
@@ -62,7 +75,9 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   title: {
-    fontSize: 36,
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    fontSize: 32,
+    color: '#2C1810', // Deep Library Brown
     textAlign: 'center',
     paddingHorizontal: 16,
   },
@@ -70,19 +85,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   subtitle: {
-    fontSize: 18,
-    opacity: 0.7,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 16,
+    color: '#1A1A1A', // Ink Black
+    opacity: 0.85,
     textAlign: 'center',
     lineHeight: 24,
   },
   button: {
-    backgroundColor: '#0A7EA4',
-    padding: 20,
-    borderRadius: 16,
+    backgroundColor: '#BF9B30', // Gold Accent
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#2C1810',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   buttonText: {
-    color: 'white',
-    fontSize: 18,
+    fontFamily: 'Inter_500Medium',
+    color: '#1A1A1A',
+    fontSize: 16,
   },
-}); 
+});
