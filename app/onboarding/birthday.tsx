@@ -1,21 +1,48 @@
-import { StyleSheet, View, Platform } from 'react-native';
+import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
-import { Picker } from '@react-native-picker/picker';
+import { BackButton } from '@/components/BackButton';
+
+const BackgroundPattern = () => {
+  // Create a subtle leather/book texture effect
+  const lines = 15; // Reduced number of lines
+  
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <View style={styles.patternContainer}>
+        {Array(lines).fill(0).map((_, i) => {
+          const randomWidth = Math.random() * 1 + 0.5; // Random width between 0.5 and 1.5
+          const randomOpacity = Math.random() * 0.015 + 0.005; // Random opacity between 0.005 and 0.02
+          
+          return (
+            <View 
+              key={i} 
+              style={[
+                styles.verticalLine,
+                { 
+                  left: `${(i / lines) * 100}%`,
+                  width: randomWidth,
+                  opacity: randomOpacity
+                }
+              ]} 
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
 export default function BirthdayScreen() {
   const router = useRouter();
-  const currentYear = new Date().getFullYear();
-  const [month, setMonth] = useState(0);
-  const [day, setDay] = useState(1);
-  const [year, setYear] = useState(1970);
+  const [birthday, setBirthday] = useState('');
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -23,39 +50,43 @@ export default function BirthdayScreen() {
     Inter_500Medium,
   });
 
-  const months = useMemo(() => [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ], []);
-
-  const daysInMonth = useMemo(() => {
-    const date = new Date(year, month + 1, 0);
-    return date.getDate();
-  }, [year, month]);
-
-  const days = useMemo(() => 
-    Array.from({ length: daysInMonth }, (_, i) => i + 1),
-    [daysInMonth]
-  );
-
-  const years = useMemo(() => 
-    Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i),
-    [currentYear]
-  );
-
-  const getAge = () => {
-    const today = new Date();
-    const birthDate = new Date(year, month, day);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   const handleNext = () => {
     router.push('/onboarding/final');
+  };
+
+  const formatBirthday = (text: string) => {
+    const cleaned = text.replace(/\D/g, '');
+    let formatted = cleaned;
+    
+    if (cleaned.length > 0) {
+      formatted = cleaned.slice(0, 2);
+      if (cleaned.length > 2) {
+        formatted += `/${cleaned.slice(2, 4)}`;
+      }
+      if (cleaned.length > 4) {
+        formatted += `/${cleaned.slice(4, 8)}`;
+      }
+    }
+    return formatted;
+  };
+
+  const isValidDate = (dateString: string) => {
+    if (dateString.length !== 10) return false;
+    
+    const [month, day, year] = dateString.split('/').map(Number);
+    const date = new Date(year, month - 1, day);
+    const currentYear = new Date().getFullYear();
+    
+    return date.getMonth() === month - 1 && 
+           date.getDate() === day && 
+           date.getFullYear() === year &&
+           year >= 1900 && 
+           year <= currentYear;
+  };
+
+  const handleBirthdayChange = (text: string) => {
+    const formatted = formatBirthday(text);
+    setBirthday(formatted);
   };
 
   if (!fontsLoaded) {
@@ -64,82 +95,60 @@ export default function BirthdayScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <ThemedText style={styles.title}>When Were You Born?</ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Your age helps us tailor questions to your life experiences
-            </ThemedText>
+      <StatusBar style="light" />
+      
+      {/* Subtle background pattern */}
+      <BackgroundPattern />
+
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <BackButton />
+          
+          <View style={styles.content}>
           </View>
 
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={month}
-                onValueChange={(value) => setMonth(value)}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-              >
-                {months.map((monthName, index) => (
-                  <Picker.Item 
-                    key={monthName} 
-                    label={monthName} 
-                    value={index}
-                    color="#2C1810"
-                  />
-                ))}
-              </Picker>
+          <View style={styles.inputWrapper}>
+            <ThemedText style={styles.title}>
+              When is your birthday?
+            </ThemedText>
+            
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={birthday}
+                onChangeText={handleBirthdayChange}
+                placeholder="MM/DD/YYYY"
+                keyboardType="number-pad"
+                maxLength={10}
+                placeholderTextColor="#6B6B6B"
+                autoFocus={true}
+              />
 
-              <Picker
-                selectedValue={day}
-                onValueChange={(value) => setDay(value)}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-              >
-                {days.map(d => (
-                  <Picker.Item 
-                    key={d} 
-                    label={d.toString()} 
-                    value={d}
-                    color="#2C1810"
-                  />
-                ))}
-              </Picker>
-
-              <Picker
-                selectedValue={year}
-                onValueChange={(value) => setYear(value)}
-                style={styles.picker}
-                itemStyle={styles.pickerItem}
-              >
-                {years.map(y => (
-                  <Picker.Item 
-                    key={y} 
-                    label={y.toString()} 
-                    value={y}
-                    color="#2C1810"
-                  />
-                ))}
-              </Picker>
+              <View style={styles.arrowContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.button,
+                    !isValidDate(birthday) && styles.buttonDisabled
+                  ]} 
+                  onPress={handleNext}
+                  disabled={!isValidDate(birthday)}
+                >
+                  <ThemedText style={[
+                    styles.buttonText,
+                    isValidDate(birthday) && styles.buttonTextActive
+                  ]}>
+                    →
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
             </View>
-
-            <ThemedText style={styles.ageText}>
-              {getAge()} years old
-            </ThemedText>
           </View>
-
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={handleNext}
-          >
-            <ThemedText style={styles.buttonText}>
-              Continue
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -147,75 +156,74 @@ export default function BirthdayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F1E8', // Aged Paper
+    backgroundColor: '#2C1810', // Deep Library Brown
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
+  patternContainer: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  verticalLine: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#BF9B30', // Gold Accent
   },
   safeArea: {
     flex: 1,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 48,
   },
-  header: {
-    gap: 12,
-    marginBottom: 32,
+  inputWrapper: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+  },
+  bottomContent: {
+    paddingHorizontal: 20,
+    marginBottom: 20, // Space from keyboard
   },
   title: {
     fontFamily: 'PlayfairDisplay_600SemiBold',
-    fontSize: 24,
-    color: '#2C1810', // Deep Library Brown
-    textAlign: 'center',
+    fontSize: 20,
+    color: '#F5F1E8', // Aged Paper
+    marginBottom: 24,
+    letterSpacing: 0.5,
   },
-  subtitle: {
+  inputContainer: {
+    position: 'relative',
+    marginBottom: 20,
+  },
+  input: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#6B6B6B', // Faded Text
-    textAlign: 'center',
+    fontSize: 20,
+    color: '#F5F1E8', // Aged Paper
+    borderBottomWidth: 1,
+    borderBottomColor: '#BF9B30', // Gold Accent
+    paddingVertical: 8,
+    paddingRight: 40,
   },
-  pickerContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-    backgroundColor: '#FFFCF5', // Cream
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E0D5', // Subtle Border
-    padding: 16,
-  },
-  pickerWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  picker: {
-    width: Platform.OS === 'ios' ? 120 : 110,
-    height: Platform.OS === 'ios' ? 200 : 50,
-  },
-  pickerItem: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    height: 120,
-  },
-  ageText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 14,
-    color: '#6B6B6B', // Faded Text
-    marginTop: 8,
+  arrowContainer: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    paddingBottom: 8,
+    paddingRight: 8,
   },
   button: {
-    backgroundColor: '#BF9B30', // Gold Accent
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#2C1810',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   buttonText: {
     fontFamily: 'Inter_500Medium',
-    color: '#1A1A1A',
-    fontSize: 16,
+    fontSize: 20,
+    color: '#6B6B6B',
+  },
+  buttonTextActive: {
+    color: '#BF9B30', // Gold Accent
   },
 });

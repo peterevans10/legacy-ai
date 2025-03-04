@@ -1,22 +1,53 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Image, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState, useEffect } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
+import Animated, { 
+  withTiming, 
+  useAnimatedStyle, 
+  useSharedValue,
+  runOnJS
+} from 'react-native-reanimated';
+
+const words = ['Document', 'Share', 'Immortalize'];
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const [currentWord, setCurrentWord] = useState(words[0]);
+  const opacity = useSharedValue(1);
+  
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
     Inter_400Regular,
     Inter_500Medium,
   });
+
+  useEffect(() => {
+    let currentIndex = 0;
+
+    const animateNextWord = () => {
+      currentIndex = (currentIndex + 1) % words.length;
+      opacity.value = withTiming(0, { duration: 800 }, () => {
+        // Fade in new word
+        runOnJS(setCurrentWord)(words[currentIndex]);
+        opacity.value = withTiming(1, { duration: 800 });
+      });
+    };
+
+    const interval = setInterval(animateNextWord, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   const handleNext = () => {
     router.push('/onboarding/phone');
@@ -28,27 +59,35 @@ export default function WelcomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
-          <View style={styles.main}>
-            <MaterialCommunityIcons name="book-open-page-variant" size={64} color="#BF9B30" />
-            <ThemedText style={styles.title}>
-              Legacy AI
-            </ThemedText>
-            <View style={styles.subtitleContainer}>
-              <ThemedText style={styles.subtitle}>
-                Document your personal legacy through daily questions and shared stories
-              </ThemedText>
-            </View>
-          </View>
+      <StatusBar style="light" />
+      
+      <Image 
+        source={require('@/assets/images/library-bg.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+      
+      <View style={styles.overlay} />
 
-          <TouchableOpacity style={styles.button} onPress={handleNext}>
-            <ThemedText style={styles.buttonText}>
-              Begin Your Legacy
-            </ThemedText>
-          </TouchableOpacity>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.titleContainer}>
+          <ThemedText style={styles.title}>
+            Legacy AI
+          </ThemedText>
+          
+          <Animated.Text style={[styles.subtitle, animatedStyle]}>
+            {currentWord}
+          </Animated.Text>
         </View>
+
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleNext}
+        >
+          <ThemedText style={styles.buttonText}>
+            Begin Your Legacy
+          </ThemedText>
+        </TouchableOpacity>
       </SafeAreaView>
     </ThemedView>
   );
@@ -57,55 +96,56 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F1E8', // Aged Paper
+    backgroundColor: '#2C1810',
+  },
+  backgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44, 24, 16, 0.4)',
   },
   safeArea: {
     flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
     justifyContent: 'space-between',
-    paddingVertical: 48,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40, // Add padding to top
   },
-  main: {
+  titleContainer: {
     flex: 1,
+    justifyContent: 'flex-start', // Align to top instead of center
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 24,
+    paddingTop: Platform.OS === 'ios' ? 140 : 100, // Space from top
   },
   title: {
     fontFamily: 'PlayfairDisplay_600SemiBold',
-    fontSize: 32,
-    color: '#2C1810', // Deep Library Brown
+    fontSize: 50,
+    color: '#BF9B30',
+    marginBottom: 16,
     textAlign: 'center',
-    paddingHorizontal: 16,
-  },
-  subtitleContainer: {
-    paddingHorizontal: 32,
+    lineHeight: 48,
   },
   subtitle: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#1A1A1A', // Ink Black
-    opacity: 0.85,
+    fontSize: 20,
+    color: '#F5F1E8',
     textAlign: 'center',
-    lineHeight: 24,
+    marginTop: 8,
   },
   button: {
-    backgroundColor: '#BF9B30', // Gold Accent
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#2C1810',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: '#BF9B30',
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 30,
+    marginBottom: Platform.OS === 'ios' ? 16 : 24,
+    alignSelf: 'center',
   },
   buttonText: {
     fontFamily: 'Inter_500Medium',
-    color: '#1A1A1A',
-    fontSize: 16,
+    fontSize: 18,
+    color: '#2C1810',
+    textAlign: 'center',
   },
 });

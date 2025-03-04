@@ -1,20 +1,48 @@
-import { StyleSheet, View, TouchableOpacity as RNTouchableOpacity } from 'react-native';
+import { StyleSheet, View, Platform, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { BackButton } from '@/components/BackButton';
 
-type Gender = 'male' | 'female' | 'other' | null;
+const BackgroundPattern = () => {
+  const lines = 15;
+  
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <View style={styles.patternContainer}>
+        {Array(lines).fill(0).map((_, i) => {
+          const randomWidth = Math.random() * 1 + 0.5;
+          const randomOpacity = Math.random() * 0.015 + 0.005;
+          
+          return (
+            <View 
+              key={i} 
+              style={[
+                styles.verticalLine,
+                { 
+                  left: `${(i / lines) * 100}%`,
+                  width: randomWidth,
+                  opacity: randomOpacity
+                }
+              ]} 
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+type Gender = 'male' | 'female' | 'other' | 'non_binary' | null;
 
 export default function GenderScreen() {
   const router = useRouter();
-  const [selectedGender, setSelectedGender] = useState<Gender>(null);
+  const [gender, setGender] = useState<Gender>(null);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -22,31 +50,10 @@ export default function GenderScreen() {
     Inter_500Medium,
   });
 
-  const handleNext = () => {
+  const handleGenderSelect = (selectedGender: Gender) => {
+    setGender(selectedGender);
     router.push('/onboarding/birthday');
   };
-
-  const GenderOption = ({ gender, icon, label }: { gender: Gender, icon: string, label: string }) => (
-    <TouchableOpacity 
-      style={[
-        styles.optionButton,
-        selectedGender === gender && styles.optionButtonSelected
-      ]}
-      onPress={() => setSelectedGender(gender)}
-    >
-      <MaterialCommunityIcons 
-        name={icon as any} 
-        size={24} 
-        color={selectedGender === gender ? '#BF9B30' : '#6B6B6B'}
-      />
-      <ThemedText style={[
-        styles.optionText,
-        selectedGender === gender && styles.optionTextSelected
-      ]}>
-        {label}
-      </ThemedText>
-    </TouchableOpacity>
-  );
 
   if (!fontsLoaded) {
     return null;
@@ -54,48 +61,87 @@ export default function GenderScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <ThemedText style={styles.title}>What's Your Gender?</ThemedText>
-            <ThemedText style={styles.subtitle}>
-              This helps us personalize your experience
-            </ThemedText>
-          </View>
+      <StatusBar style="light" />
+      
+      <BackgroundPattern />
 
-          <View style={styles.options}>
-            <GenderOption 
-              gender="male" 
-              icon="gender-male" 
-              label="Male"
-            />
-            <GenderOption 
-              gender="female" 
-              icon="gender-female" 
-              label="Female"
-            />
-            <GenderOption 
-              gender="other" 
-              icon="gender-non-binary" 
-              label="Non-binary / Other"
-            />
-          </View>
-
-          <RNTouchableOpacity 
-            style={[
-              styles.button,
-              !selectedGender && styles.buttonDisabled
-            ]} 
-            onPress={handleNext}
-            disabled={!selectedGender}
-          >
-            <ThemedText style={styles.buttonText}>
-              Continue
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <BackButton />
+          
+          <View style={styles.content}>
+            <ThemedText style={styles.title}>
+              What's your gender?
             </ThemedText>
-          </RNTouchableOpacity>
-        </View>
-      </SafeAreaView>
+            
+            <View style={styles.optionsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.option,
+                  gender === 'male' && styles.optionSelected
+                ]}
+                onPress={() => handleGenderSelect('male')}
+              >
+                <ThemedText style={[
+                  styles.optionText,
+                  gender === 'male' && styles.optionTextSelected
+                ]}>
+                  Male
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.option,
+                  gender === 'female' && styles.optionSelected
+                ]}
+                onPress={() => handleGenderSelect('female')}
+              >
+                <ThemedText style={[
+                  styles.optionText,
+                  gender === 'female' && styles.optionTextSelected
+                ]}>
+                  Female
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.option,
+                  gender === 'non_binary' && styles.optionSelected
+                ]}
+                onPress={() => handleGenderSelect('non_binary')}
+              >
+                <ThemedText style={[
+                  styles.optionText,
+                  gender === 'non_binary' && styles.optionTextSelected
+                ]}>
+                  Non-Binary
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.option,
+                  gender === 'other' && styles.optionSelected
+                ]}
+                onPress={() => handleGenderSelect('other')}
+              >
+                <ThemedText style={[
+                  styles.optionText,
+                  gender === 'other' && styles.optionTextSelected
+                ]}>
+                  Other
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -103,76 +149,56 @@ export default function GenderScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F1E8', // Aged Paper
+    backgroundColor: '#2C1810',
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
+  patternContainer: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  verticalLine: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#BF9B30',
   },
   safeArea: {
     flex: 1,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-  },
-  header: {
-    gap: 12,
-    marginBottom: 32,
+    paddingHorizontal: 20,
+    paddingTop: 100,
   },
   title: {
     fontFamily: 'PlayfairDisplay_600SemiBold',
-    fontSize: 24,
-    color: '#2C1810', // Deep Library Brown
-    textAlign: 'center',
+    fontSize: 20,
+    color: '#F5F1E8',
+    marginBottom: 40,
+    letterSpacing: 0.5,
   },
-  subtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#6B6B6B', // Faded Text
-    textAlign: 'center',
-  },
-  options: {
+  optionsContainer: {
     gap: 16,
-    marginBottom: 32,
   },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    backgroundColor: '#FFFCF5', // Cream
-    borderRadius: 12,
+  option: {
     borderWidth: 1,
-    borderColor: '#E5E0D5', // Subtle Border
+    borderColor: 'rgba(191, 155, 48, 0.3)',
+    borderRadius: 12,
     padding: 16,
   },
-  optionButtonSelected: {
-    borderColor: '#BF9B30', // Gold Accent
-    backgroundColor: '#FFFCF5', // Cream
+  optionSelected: {
+    borderColor: '#BF9B30',
+    backgroundColor: 'rgba(191, 155, 48, 0.1)',
   },
   optionText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Inter_500Medium',
     fontSize: 16,
-    color: '#6B6B6B', // Faded Text
+    color: 'rgba(245, 241, 232, 0.7)',
+    textAlign: 'center',
   },
   optionTextSelected: {
-    color: '#2C1810', // Deep Library Brown
-    fontFamily: 'Inter_500Medium',
-  },
-  button: {
-    backgroundColor: '#BF9B30', // Gold Accent
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#2C1810',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonDisabled: {
-    backgroundColor: '#E5E0D5', // Subtle Border
-  },
-  buttonText: {
-    fontFamily: 'Inter_500Medium',
-    color: '#1A1A1A',
-    fontSize: 16,
+    color: '#F5F1E8',
   },
 });

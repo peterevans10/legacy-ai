@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -8,11 +8,40 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
+import { BackButton } from '@/components/BackButton';
+
+const BackgroundPattern = () => {
+  const lines = 15;
+  
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <View style={styles.patternContainer}>
+        {Array(lines).fill(0).map((_, i) => {
+          const randomWidth = Math.random() * 1 + 0.5;
+          const randomOpacity = Math.random() * 0.015 + 0.005;
+          
+          return (
+            <View 
+              key={i} 
+              style={[
+                styles.verticalLine,
+                { 
+                  left: `${(i / lines) * 100}%`,
+                  width: randomWidth,
+                  opacity: randomOpacity
+                }
+              ]} 
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
 export default function NameScreen() {
   const router = useRouter();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [name, setName] = useState('');
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -30,62 +59,60 @@ export default function NameScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardAvoid}
-        >
+      <StatusBar style="light" />
+      
+      <BackgroundPattern />
+
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <BackButton />
+          
           <View style={styles.content}>
-            <View style={styles.header}>
-              <ThemedText style={styles.title}>What's Your Name?</ThemedText>
-              <ThemedText style={styles.subtitle}>
-                This is how you'll be known in your Legacy
-              </ThemedText>
-            </View>
-
-            <View style={styles.form}>
-              <View style={styles.inputContainer}>
-                <ThemedText style={styles.label}>First Name</ThemedText>
-                <TextInput
-                  style={styles.input}
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder="Enter your first name"
-                  placeholderTextColor="#6B6B6B"
-                  autoFocus
-                  autoCapitalize="words"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <ThemedText style={styles.label}>Last Name</ThemedText>
-                <TextInput
-                  style={styles.input}
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder="Enter your last name"
-                  placeholderTextColor="#6B6B6B"
-                  autoCapitalize="words"
-                />
-              </View>
-            </View>
-
-            <TouchableOpacity 
-              style={[
-                styles.button,
-                (!firstName.trim() || !lastName.trim()) && styles.buttonDisabled
-              ]} 
-              onPress={handleNext}
-              disabled={!firstName.trim() || !lastName.trim()}
-            >
-              <ThemedText style={styles.buttonText}>
-                Continue
-              </ThemedText>
-            </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+
+          <View style={styles.inputWrapper}>
+            <ThemedText style={styles.title}>
+              What's your name?
+            </ThemedText>
+            
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="Your name"
+                keyboardType="default"
+                autoCapitalize="words"
+                placeholderTextColor="#6B6B6B"
+                autoFocus={true}
+                textContentType="name"
+              />
+
+              <View style={styles.arrowContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.button,
+                    name.trim().length < 2 && styles.buttonDisabled
+                  ]} 
+                  onPress={handleNext}
+                  disabled={name.trim().length < 2}
+                >
+                  <ThemedText style={[
+                    styles.buttonText,
+                    name.trim().length >= 2 && styles.buttonTextActive
+                  ]}>
+                    →
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -93,75 +120,69 @@ export default function NameScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F1E8', // Aged Paper
-  },
-  safeArea: {
-    flex: 1,
+    backgroundColor: '#2C1810',
   },
   keyboardAvoid: {
     flex: 1,
   },
+  patternContainer: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  verticalLine: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#BF9B30',
+  },
+  safeArea: {
+    flex: 1,
+  },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 48,
   },
-  header: {
-    gap: 12,
-    marginBottom: 32,
+  inputWrapper: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
   title: {
     fontFamily: 'PlayfairDisplay_600SemiBold',
-    fontSize: 24,
-    color: '#2C1810', // Deep Library Brown
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#6B6B6B', // Faded Text
-    textAlign: 'center',
-  },
-  form: {
-    gap: 24,
-    marginBottom: 32,
+    fontSize: 20,
+    color: '#F5F1E8',
+    marginBottom: 24,
+    letterSpacing: 0.5,
   },
   inputContainer: {
-    gap: 8,
-  },
-  label: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-    color: '#2C1810', // Deep Library Brown
-    marginLeft: 4,
+    position: 'relative',
   },
   input: {
-    backgroundColor: '#FFFCF5', // Cream
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E0D5', // Subtle Border
-    padding: 16,
     fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#1A1A1A', // Ink Black
+    fontSize: 20,
+    color: '#F5F1E8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#BF9B30',
+    paddingVertical: 8,
+    paddingRight: 40,
+  },
+  arrowContainer: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    paddingBottom: 8,
   },
   button: {
-    backgroundColor: '#BF9B30', // Gold Accent
-    padding: 16,
-    borderRadius: 12,
+    padding: 8,
+    backgroundColor: 'transparent',
     alignItems: 'center',
-    shadowColor: '#2C1810',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonDisabled: {
-    backgroundColor: '#E5E0D5', // Subtle Border
+    justifyContent: 'center',
   },
   buttonText: {
     fontFamily: 'Inter_500Medium',
-    color: '#1A1A1A',
+    color: 'rgba(191, 155, 48, 0.3)',
     fontSize: 16,
+  },
+  buttonTextActive: {
+    color: '#BF9B30',
+    opacity: 1
   },
 });

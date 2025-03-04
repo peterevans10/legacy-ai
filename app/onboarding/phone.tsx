@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -8,6 +8,37 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
+import { BackButton } from '@/components/BackButton';
+
+const BackgroundPattern = () => {
+  // Create a subtle leather/book texture effect
+  const lines = 15; // Reduced number of lines
+  
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <View style={styles.patternContainer}>
+        {Array(lines).fill(0).map((_, i) => {
+          const randomWidth = Math.random() * 1 + 0.5; // Random width between 0.5 and 1.5
+          const randomOpacity = Math.random() * 0.015 + 0.005; // Random opacity between 0.005 and 0.02
+          
+          return (
+            <View 
+              key={i} 
+              style={[
+                styles.verticalLine,
+                { 
+                  left: `${(i / lines) * 100}%`,
+                  width: randomWidth,
+                  opacity: randomOpacity
+                }
+              ]} 
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
 export default function PhoneScreen() {
   const router = useRouter();
@@ -20,7 +51,6 @@ export default function PhoneScreen() {
   });
 
   const handleNext = () => {
-    // TODO: Implement phone verification
     router.push('/onboarding/verify');
   };
 
@@ -50,20 +80,27 @@ export default function PhoneScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardAvoid}
-        >
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <ThemedText style={styles.title}>Enter Your Phone Number</ThemedText>
-              <ThemedText style={styles.subtitle}>
-                We'll send you a verification code to get started
-              </ThemedText>
-            </View>
+      <StatusBar style="light" />
+      
+      {/* Subtle background pattern */}
+      <BackgroundPattern />
 
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <BackButton />
+          
+          <View style={styles.content}>
+          </View>
+
+          <View style={styles.inputWrapper}>
+            <ThemedText style={styles.title}>
+              Please enter your phone number
+            </ThemedText>
+            
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
@@ -73,24 +110,31 @@ export default function PhoneScreen() {
                 keyboardType="phone-pad"
                 maxLength={14}
                 placeholderTextColor="#6B6B6B"
+                autoFocus={true}
+                textContentType="telephoneNumber"
               />
-            </View>
 
-            <TouchableOpacity 
-              style={[
-                styles.button,
-                phoneNumber.length < 14 && styles.buttonDisabled
-              ]} 
-              onPress={handleNext}
-              disabled={phoneNumber.length < 14}
-            >
-              <ThemedText style={styles.buttonText}>
-                Continue
-              </ThemedText>
-            </TouchableOpacity>
+              <View style={styles.arrowContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.button,
+                    phoneNumber.length < 14 && styles.buttonDisabled
+                  ]} 
+                  onPress={handleNext}
+                  disabled={phoneNumber.length < 14}
+                >
+                  <ThemedText style={[
+                    styles.buttonText,
+                    phoneNumber.length >= 14 && styles.buttonTextActive
+                  ]}>
+                    →
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -98,66 +142,74 @@ export default function PhoneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F1E8', // Aged Paper
-  },
-  safeArea: {
-    flex: 1,
+    backgroundColor: '#2C1810', // Deep Library Brown
   },
   keyboardAvoid: {
     flex: 1,
   },
+  patternContainer: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  verticalLine: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#BF9B30', // Gold Accent
+  },
+  safeArea: {
+    flex: 1,
+  },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 48,
   },
-  header: {
-    gap: 12,
-    marginBottom: 32,
+  inputWrapper: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+  },
+  bottomContent: {
+    paddingHorizontal: 20,
+    marginBottom: 20, // Space from keyboard
   },
   title: {
     fontFamily: 'PlayfairDisplay_600SemiBold',
-    fontSize: 24,
-    color: '#2C1810', // Deep Library Brown
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: '#6B6B6B', // Faded Text
-    textAlign: 'center',
+    fontSize: 20,
+    color: '#F5F1E8', // Aged Paper
+    marginBottom: 24,
+    letterSpacing: 0.5,
   },
   inputContainer: {
-    backgroundColor: '#FFFCF5', // Cream
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E0D5', // Subtle Border
-    padding: 16,
-    marginBottom: 24,
+    position: 'relative',
+    marginBottom: 20,
   },
   input: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 18,
-    color: '#1A1A1A', // Ink Black
-    textAlign: 'center',
+    fontSize: 20,
+    color: '#F5F1E8', // Aged Paper
+    borderBottomWidth: 1,
+    borderBottomColor: '#BF9B30', // Gold Accent
+    paddingVertical: 8,
+    paddingRight: 40,
+  },
+  arrowContainer: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    paddingBottom: 8,
   },
   button: {
-    backgroundColor: '#BF9B30', // Gold Accent
-    padding: 16,
-    borderRadius: 12,
+    padding: 8,
+    backgroundColor: 'transparent',
     alignItems: 'center',
-    shadowColor: '#2C1810',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonDisabled: {
-    backgroundColor: '#E5E0D5', // Subtle Border
+    justifyContent: 'center',
   },
   buttonText: {
     fontFamily: 'Inter_500Medium',
-    color: '#1A1A1A',
+    color: 'rgba(191, 155, 48, 0.3)', // Faded gold
     fontSize: 16,
+  },
+  buttonTextActive: {
+    color: '#BF9B30', // Gold Accent
+    opacity: 1
   },
 });
