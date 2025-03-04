@@ -1,14 +1,15 @@
-import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
+import { useAuth } from '@/contexts/AuthContext';
 
 const BackgroundPattern = () => {
   const lines = 15;
@@ -41,7 +42,10 @@ const BackgroundPattern = () => {
 
 export default function VerifyScreen() {
   const router = useRouter();
-  const [verificationCode, setVerificationCode] = useState('');
+  const { phoneNumber, confirmCode } = useAuth();
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -49,8 +53,27 @@ export default function VerifyScreen() {
     Inter_500Medium,
   });
 
-  const handleNext = () => {
-    router.push('/onboarding/name');
+  const handleNext = async () => {
+    if (code.length !== 6) return;
+    
+    setLoading(true);
+    try {
+      await confirmCode(code);
+      router.push('/onboarding/birthday');
+    } catch (error) {
+      console.error('Error confirming code:', error);
+      Alert.alert(
+        'Error',
+        'Invalid verification code. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCodeChange = (text: string) => {
+    const cleaned = text.replace(/\D/g, '');
+    setCode(cleaned);
   };
 
   if (!fontsLoaded) {
@@ -79,31 +102,35 @@ export default function VerifyScreen() {
               Enter verification code
             </ThemedText>
             
+            <ThemedText style={styles.subtitle}>
+              Code sent to {phoneNumber}
+            </ThemedText>
+            
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                value={verificationCode}
-                onChangeText={setVerificationCode}
+                value={code}
+                onChangeText={handleCodeChange}
                 placeholder="123456"
                 keyboardType="number-pad"
                 maxLength={6}
                 placeholderTextColor="#6B6B6B"
                 autoFocus={true}
-                textContentType="oneTimeCode"
+                editable={!loading}
               />
 
               <View style={styles.arrowContainer}>
                 <TouchableOpacity 
                   style={[
                     styles.button,
-                    verificationCode.length < 6 && styles.buttonDisabled
+                    (code.length !== 6 || loading) && styles.buttonDisabled
                   ]} 
                   onPress={handleNext}
-                  disabled={verificationCode.length < 6}
+                  disabled={code.length !== 6 || loading}
                 >
                   <ThemedText style={[
                     styles.buttonText,
-                    verificationCode.length >= 6 && styles.buttonTextActive
+                    code.length === 6 && !loading && styles.buttonTextActive
                   ]}>
                     →
                   </ThemedText>
@@ -125,6 +152,12 @@ const styles = StyleSheet.create({
   keyboardAvoid: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
   patternContainer: {
     flex: 1,
     overflow: 'hidden',
@@ -134,12 +167,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     backgroundColor: '#BF9B30',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
   },
   inputWrapper: {
     paddingHorizontal: 20,
@@ -151,6 +178,12 @@ const styles = StyleSheet.create({
     color: '#F5F1E8',
     marginBottom: 24,
     letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 16,
+    color: '#6B6B6B',
+    marginBottom: 24,
   },
   inputContainer: {
     position: 'relative',
@@ -175,6 +208,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#D1D1D1',
   },
   buttonText: {
     fontFamily: 'Inter_500Medium',

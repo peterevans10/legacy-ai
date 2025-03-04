@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
+import { useAuth } from '@/contexts/AuthContext';
 
 const BackgroundPattern = () => {
   // Create a subtle leather/book texture effect
@@ -43,6 +44,9 @@ const BackgroundPattern = () => {
 export default function PhoneScreen() {
   const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState('');
+  const { signInWithPhoneNumber, setPhoneNumber: setAuthPhoneNumber } = useAuth();
+  const [loading, setLoading] = useState(false);
+  
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -50,8 +54,24 @@ export default function PhoneScreen() {
     Inter_500Medium,
   });
 
-  const handleNext = () => {
-    router.push('/onboarding/verify');
+  const handleNext = async () => {
+    if (phoneNumber.length < 14) return;
+    
+    setLoading(true);
+    try {
+      const formattedNumber = '+1' + phoneNumber.replace(/\D/g, '');
+      setAuthPhoneNumber(formattedNumber);
+      await signInWithPhoneNumber(formattedNumber);
+      router.push('/onboarding/verify');
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      Alert.alert(
+        'Error',
+        'Failed to send verification code. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatPhoneNumber = (text: string) => {
@@ -112,20 +132,21 @@ export default function PhoneScreen() {
                 placeholderTextColor="#6B6B6B"
                 autoFocus={true}
                 textContentType="telephoneNumber"
+                editable={!loading}
               />
 
               <View style={styles.arrowContainer}>
                 <TouchableOpacity 
                   style={[
                     styles.button,
-                    phoneNumber.length < 14 && styles.buttonDisabled
+                    (phoneNumber.length < 14 || loading) && styles.buttonDisabled
                   ]} 
                   onPress={handleNext}
-                  disabled={phoneNumber.length < 14}
+                  disabled={phoneNumber.length < 14 || loading}
                 >
                   <ThemedText style={[
                     styles.buttonText,
-                    phoneNumber.length >= 14 && styles.buttonTextActive
+                    phoneNumber.length >= 14 && !loading && styles.buttonTextActive
                   ]}>
                     →
                   </ThemedText>
