@@ -14,8 +14,8 @@
 		96905EF65AED1B983A6B3ABC /* libPods-legacyai.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-legacyai.a */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		1A24C6C184594CD182E41E2B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F7E0528430694C2C89C4547D /* GoogleService-Info.plist */; };
-		EA88D2E07B5848D39EB7908C /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B27BD58AA54035B68D803A /* noop-file.swift */; };
+		321B2CE5A0D144679DC37345 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F0C4E7260DD049DFAC95DFAC /* GoogleService-Info.plist */; };
+		C52C3494AEBD4401836C7F10 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C2CFF691214AD0B564E2AC /* noop-file.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,9 +32,9 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-legacyai/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		F7E0528430694C2C89C4547D /* GoogleService-Info.plist */ = {isa = PBXFileReference; name = "GoogleService-Info.plist"; path = "legacyai/GoogleService-Info.plist"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = text.plist.xml; explicitFileType = undefined; includeInIndex = 0; };
-		13B27BD58AA54035B68D803A /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "legacyai/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		1B6493CF9D6A4A5B8BAD68ED /* legacyai-Bridging-Header.h */ = {isa = PBXFileReference; name = "legacyai-Bridging-Header.h"; path = "legacyai/legacyai-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
+		F0C4E7260DD049DFAC95DFAC /* GoogleService-Info.plist */ = {isa = PBXFileReference; name = "GoogleService-Info.plist"; path = "legacyai/GoogleService-Info.plist"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = text.plist.xml; explicitFileType = undefined; includeInIndex = 0; };
+		07C2CFF691214AD0B564E2AC /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "legacyai/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		47A15505EB6248D286FA9A91 /* legacyai-Bridging-Header.h */ = {isa = PBXFileReference; name = "legacyai-Bridging-Header.h"; path = "legacyai/legacyai-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,9 +59,9 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				F7E0528430694C2C89C4547D /* GoogleService-Info.plist */,
-				13B27BD58AA54035B68D803A /* noop-file.swift */,
-				1B6493CF9D6A4A5B8BAD68ED /* legacyai-Bridging-Header.h */,
+				F0C4E7260DD049DFAC95DFAC /* GoogleService-Info.plist */,
+				07C2CFF691214AD0B564E2AC /* noop-file.swift */,
+				47A15505EB6248D286FA9A91 /* legacyai-Bridging-Header.h */,
 			);
 			name = legacyai;
 			sourceTree = "<group>";
@@ -201,8 +201,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				1A24C6C184594CD182E41E2B /* GoogleService-Info.plist in Resources */,
-				06B52DF0763D48A49409BC3E /* legacyai-Bridging-Header.h in Resources */,
+				321B2CE5A0D144679DC37345 /* GoogleService-Info.plist in Resources */,
+				8EEE9299937B48FB8F75A123 /* legacyai-Bridging-Header.h in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,7 +278,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
-				EA88D2E07B5848D39EB7908C /* noop-file.swift in Sources */,
+				C52C3494AEBD4401836C7F10 /* noop-file.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
