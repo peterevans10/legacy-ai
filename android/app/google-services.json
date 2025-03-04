@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "262440557476",
+    "project_id": "legacy-ai-b430f",
+    "storage_bucket": "legacy-ai-b430f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:262440557476:android:94e006698099b80c5d3f31",
+        "android_client_info": {
+          "package_name": "com.legacyai.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "262440557476-321peush68qr6ncod8ued5uu8e57moh5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbZb7hbtUM4TndOw7whpUMJoWGf9rYjds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "262440557476-321peush68qr6ncod8ued5uu8e57moh5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "262440557476-ma1bcv7biem23bd0sjihpto49ejpqol1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.legacyai.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
