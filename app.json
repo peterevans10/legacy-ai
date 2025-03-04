@@ -17,7 +17,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.peterevans10.legacyai",
+      "bundleIdentifier": "com.legacyai.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -28,7 +28,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.peterevans10.legacyai",
+      "package": "com.legacyai.app",
       "googleServicesFile": "./config/google-services.json"
     },
     "web": {
