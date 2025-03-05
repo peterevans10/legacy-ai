@@ -10,15 +10,15 @@ import {
 } from 'firebase/auth';
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
 import { auth as firebaseAuthApp } from '@/config/firebase';
+import Constants from 'expo-constants';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBsVrUSXfW6en3OTRjuCz7a_hC_a2j2PzU",
-  authDomain: "legacy-ai-b430f.firebaseapp.com",
-  projectId: "legacy-ai-b430f",
-  storageBucket: "legacy-ai-b430f.firebasestorage.app",
-  messagingSenderId: "262440557476",
-  appId: "1:262440557476:web:888c14e0e014c6c25d3f31",
-  measurementId: "G-QFQBN91NYS"
+  apiKey: Constants.expoConfig?.extra?.firebase.apiKey,
+  authDomain: Constants.expoConfig?.extra?.firebase.authDomain,
+  projectId: Constants.expoConfig?.extra?.firebase.projectId,
+  storageBucket: Constants.expoConfig?.extra?.firebase.storageBucket,
+  messagingSenderId: Constants.expoConfig?.extra?.firebase.messagingSenderId,
+  appId: Constants.expoConfig?.extra?.firebase.appId,
 };
 
 interface AuthContextType {

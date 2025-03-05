@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // Allow read if authenticated
+      allow read: if request.auth != null;
+      
+      // Allow write if authenticated and it's their own document
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Custom functions for validation
+      function isValidUsername() {
+        let username = request.resource.data.username;
+        return username == null || (
+          username is string &&
+          username.size() >= 3 &&
+          username.size() <= 30 &&
+          username.matches('^[a-zA-Z0-9_]+$') &&
+          getAfter(/databases/$(database)/documents/users)
+            .where('username', '==', username)
+            .size() <= 1
+        );
+      }
+      
+      function isValidEmail() {
+        let email = request.resource.data.email;
+        return email == null || (
+          email is string &&
+          email.matches('^[^@]+@[^@]+\\.[^@]+$') &&
+          getAfter(/databases/$(database)/documents/users)
+            .where('email', '==', email)
+            .size() <= 1
+        );
+      }
+      
+      // Enforce data validation
+      allow create: if request.auth != null && 
+        request.auth.uid == userId &&
+        isValidUsername() &&
+        isValidEmail();
+        
+      allow update: if request.auth != null && 
+        request.auth.uid == userId &&
+        isValidUsername() &&
+        isValidEmail();
+    }
+  }
+}
