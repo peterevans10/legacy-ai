@@ -1,51 +1,22 @@
-import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Alert, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedView } from '@/components/ThemedView';
+import { BackgroundPattern } from './BackgroundPattern';
 import { StatusBar } from 'expo-status-bar';
-import { useState, useRef } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
-import { useAuth } from '@/contexts/AuthContext';
-
-const BackgroundPattern = () => {
-  const lines = 15;
-  
-  return (
-    <View style={StyleSheet.absoluteFill}>
-      <View style={styles.patternContainer}>
-        {Array(lines).fill(0).map((_, i) => {
-          const randomWidth = Math.random() * 1 + 0.5;
-          const randomOpacity = Math.random() * 0.015 + 0.005;
-          
-          return (
-            <View 
-              key={i} 
-              style={[
-                styles.verticalLine,
-                { 
-                  left: `${(i / lines) * 100}%`,
-                  width: randomWidth,
-                  opacity: randomOpacity
-                }
-              ]} 
-            />
-          );
-        })}
-      </View>
-    </View>
-  );
-};
 
 export default function VerifyScreen() {
   const router = useRouter();
-  const { phoneNumber, confirmCode } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { confirmCode, phoneNumber, signInWithPhoneNumber } = useAuth();
   const [code, setCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -53,27 +24,35 @@ export default function VerifyScreen() {
     Inter_500Medium,
   });
 
-  const handleNext = async () => {
-    if (code.length !== 6) return;
-    
-    setLoading(true);
+  const handleVerify = async () => {
+    if (!code || code.length !== 6) {
+      Alert.alert('Error', 'Please enter a valid verification code');
+      return;
+    }
+
     try {
+      setIsLoading(true);
       await confirmCode(code);
-      router.push('/onboarding/birthday');
+      router.push('/onboarding/name');
     } catch (error) {
-      console.error('Error confirming code:', error);
-      Alert.alert(
-        'Error',
-        'Invalid verification code. Please try again.'
-      );
+      console.error('Error verifying code:', error);
+      Alert.alert('Error', 'Invalid verification code. Please try again.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleCodeChange = (text: string) => {
-    const cleaned = text.replace(/\D/g, '');
-    setCode(cleaned);
+  const handleResend = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithPhoneNumber(phoneNumber);
+      Alert.alert('Success', 'Verification code resent successfully');
+    } catch (error) {
+      console.error('Error resending code:', error);
+      Alert.alert('Error', 'Failed to resend verification code. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!fontsLoaded) {
@@ -86,60 +65,55 @@ export default function VerifyScreen() {
       
       <BackgroundPattern />
 
-      <KeyboardAvoidingView 
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <BackButton />
-          
-          <View style={styles.content}>
-          </View>
-
-          <View style={styles.inputWrapper}>
-            <ThemedText style={styles.title}>
-              Enter verification code
+      <SafeAreaView style={styles.safeArea}>
+        <BackButton />
+        
+        <View style={styles.content}>
+          <ThemedText style={styles.title}>
+            Enter verification code
+          </ThemedText>
+          <ThemedText style={styles.subtitle}>
+            We sent a code to {phoneNumber}
+          </ThemedText>
+          <TextInput
+            style={styles.input}
+            value={code}
+            onChangeText={setCode}
+            placeholder="123456"
+            keyboardType="number-pad"
+            maxLength={6}
+            placeholderTextColor="#6B6B6B"
+            autoFocus={true}
+            textContentType="oneTimeCode"
+          />
+        </View>
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={[
+              styles.button,
+              (!code || code.length !== 6 || isLoading) && styles.buttonDisabled
+            ]} 
+            onPress={handleVerify}
+            disabled={!code || code.length !== 6 || isLoading}
+          >
+            <ThemedText style={[
+              styles.buttonText,
+              code.length === 6 && styles.buttonTextActive
+            ]}>
+              Verify
             </ThemedText>
-            
-            <ThemedText style={styles.subtitle}>
-              Code sent to {phoneNumber}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.resendButton]}
+            onPress={handleResend}
+            disabled={isLoading}
+          >
+            <ThemedText style={styles.buttonText}>
+              Resend Code
             </ThemedText>
-            
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                value={code}
-                onChangeText={handleCodeChange}
-                placeholder="123456"
-                keyboardType="number-pad"
-                maxLength={6}
-                placeholderTextColor="#6B6B6B"
-                autoFocus={true}
-                editable={!loading}
-              />
-
-              <View style={styles.arrowContainer}>
-                <TouchableOpacity 
-                  style={[
-                    styles.button,
-                    (code.length !== 6 || loading) && styles.buttonDisabled
-                  ]} 
-                  onPress={handleNext}
-                  disabled={code.length !== 6 || loading}
-                >
-                  <ThemedText style={[
-                    styles.buttonText,
-                    code.length === 6 && !loading && styles.buttonTextActive
-                  ]}>
-                    →
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </ThemedView>
   );
 }
@@ -149,59 +123,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#2C1810',
   },
-  keyboardAvoid: {
-    flex: 1,
-  },
   safeArea: {
     flex: 1,
   },
   content: {
     flex: 1,
-  },
-  patternContainer: {
-    flex: 1,
-    overflow: 'hidden',
-  },
-  verticalLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    backgroundColor: '#BF9B30',
-  },
-  inputWrapper: {
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    padding: 24,
   },
   title: {
+    marginBottom: 8,
+    textAlign: 'center',
     fontFamily: 'PlayfairDisplay_600SemiBold',
     fontSize: 20,
     color: '#F5F1E8',
-    marginBottom: 24,
     letterSpacing: 0.5,
   },
   subtitle: {
+    marginBottom: 32,
+    textAlign: 'center',
+    color: '#666',
     fontFamily: 'Inter_400Regular',
     fontSize: 16,
-    color: '#6B6B6B',
-    marginBottom: 24,
-  },
-  inputContainer: {
-    position: 'relative',
   },
   input: {
+    marginBottom: 24,
     fontFamily: 'Inter_400Regular',
     fontSize: 20,
     color: '#F5F1E8',
     borderBottomWidth: 1,
     borderBottomColor: '#BF9B30',
     paddingVertical: 8,
-    paddingRight: 40,
   },
-  arrowContainer: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    paddingBottom: 8,
+  footer: {
+    padding: 24,
+    paddingBottom: 34,
   },
   button: {
     padding: 8,
@@ -210,7 +165,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#D1D1D1',
+    opacity: 0.5,
   },
   buttonText: {
     fontFamily: 'Inter_500Medium',
@@ -219,6 +174,9 @@ const styles = StyleSheet.create({
   },
   buttonTextActive: {
     color: '#BF9B30',
-    opacity: 1
+    opacity: 1,
+  },
+  resendButton: {
+    marginTop: 12,
   },
 });

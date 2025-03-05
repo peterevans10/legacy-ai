@@ -1,5 +1,5 @@
-import { initializeApp, getApps, getApp } from '@react-native-firebase/app';
-import auth from '@react-native-firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBsVrUSXfW6en3OTRjuCz7a_hC_a2j2PzU",
@@ -12,12 +12,6 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app;
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
-}
-
-export const firebaseAuth = auth();
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
 export default app;

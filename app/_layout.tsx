@@ -42,11 +42,8 @@ export default function RootLayout() {
         <OnboardingProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="onboarding/index" />
-              <Stack.Screen name="onboarding/phone" />
-              <Stack.Screen name="onboarding/verify" />
-              <Stack.Screen name="onboarding/birthday" />
-              <Stack.Screen name="onboarding/final" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="onboarding" />
               <Stack.Screen name="+not-found" />
             </Stack>
             <StatusBar style="auto" />

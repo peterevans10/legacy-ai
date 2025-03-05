@@ -5,49 +5,41 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "legacy-ai",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.legacyai.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      },
-      "googleServicesFile": "./config/GoogleService-Info.plist"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.legacyai.app",
-      "googleServicesFile": "./config/google-services.json"
+      "package": "com.legacyai.app"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "config": {
+        "firebase": {
+          "apiKey": "AIzaSyBsVrUSXfW6en3OTRjuCz7a_hC_a2j2PzU",
+          "authDomain": "legacy-ai-b430f.firebaseapp.com",
+          "projectId": "legacy-ai-b430f",
+          "storageBucket": "legacy-ai-b430f.firebasestorage.app",
+          "messagingSenderId": "262440557476",
+          "appId": "1:262440557476:web:888c14e0e014c6c25d3f31",
+          "measurementId": "G-QFQBN91NYS"
+        }
+      }
     },
     "plugins": [
       "expo-router",
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static"
-          }
-        }
-      ],
       [
         "expo-splash-screen",
         {
