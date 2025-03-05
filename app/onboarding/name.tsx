@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 const BackgroundPattern = () => {
   const lines = 15;
@@ -42,6 +43,7 @@ const BackgroundPattern = () => {
 export default function NameScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
+  const { updateOnboardingData } = useOnboarding();
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -49,7 +51,8 @@ export default function NameScreen() {
     Inter_500Medium,
   });
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    await updateOnboardingData({ name: name.trim() });
     router.push('/onboarding/gender');
   };
 

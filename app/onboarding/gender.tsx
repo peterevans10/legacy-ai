@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 const BackgroundPattern = () => {
   const lines = 15;
@@ -38,11 +39,12 @@ const BackgroundPattern = () => {
   );
 };
 
-type Gender = 'male' | 'female' | 'other' | 'non_binary' | null;
+type Gender = 'male' | 'female' | 'other' | 'prefer_not_to_say' | null;
 
 export default function GenderScreen() {
   const router = useRouter();
   const [gender, setGender] = useState<Gender>(null);
+  const { updateOnboardingData } = useOnboarding();
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -50,8 +52,11 @@ export default function GenderScreen() {
     Inter_500Medium,
   });
 
-  const handleGenderSelect = (selectedGender: Gender) => {
+  const handleGenderSelect = async (selectedGender: Gender) => {
+    if (!selectedGender) return;
+    
     setGender(selectedGender);
+    await updateOnboardingData({ gender: selectedGender });
     router.push('/onboarding/birthday');
   };
 

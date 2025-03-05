@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, TextInput, Platform, KeyboardAvoidingView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 const BackgroundPattern = () => {
   // Create a subtle leather/book texture effect
@@ -43,6 +44,8 @@ const BackgroundPattern = () => {
 export default function BirthdayScreen() {
   const router = useRouter();
   const [birthday, setBirthday] = useState('');
+  const { updateOnboardingData, saveUserProfile } = useOnboarding();
+  const [loading, setLoading] = useState(false);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_600SemiBold,
@@ -50,8 +53,32 @@ export default function BirthdayScreen() {
     Inter_500Medium,
   });
 
-  const handleNext = () => {
-    router.push('/onboarding/final');
+  const handleNext = async () => {
+    try {
+      setLoading(true);
+      
+      // Convert MM/DD/YYYY to YYYY-MM-DD
+      const [month, day, year] = birthday.split('/');
+      const isoDate = `${year}-${month}-${day}`;
+      
+      // Update onboarding data with birthdate
+      await updateOnboardingData({ birthdate: isoDate });
+      
+      // Save the complete user profile
+      await saveUserProfile();
+      
+      // Navigate to final screen
+      router.push('/onboarding/final');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      Alert.alert(
+        'Error',
+        'There was a problem saving your profile. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatBirthday = (text: string) => {
@@ -132,16 +159,16 @@ export default function BirthdayScreen() {
                 <TouchableOpacity 
                   style={[
                     styles.button,
-                    !isValidDate(birthday) && styles.buttonDisabled
+                    (!isValidDate(birthday) || loading) && styles.buttonDisabled
                   ]} 
                   onPress={handleNext}
-                  disabled={!isValidDate(birthday)}
+                  disabled={!isValidDate(birthday) || loading}
                 >
                   <ThemedText style={[
                     styles.buttonText,
-                    isValidDate(birthday) && styles.buttonTextActive
+                    isValidDate(birthday) && !loading && styles.buttonTextActive
                   ]}>
-                    →
+                    {loading ? '...' : '→'}
                   </ThemedText>
                 </TouchableOpacity>
               </View>
