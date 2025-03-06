@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
+import { usersService } from '@/services/users';
 
 export default function PhoneScreen() {
   const router = useRouter();

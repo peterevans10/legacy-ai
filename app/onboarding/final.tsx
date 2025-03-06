@@ -4,7 +4,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useSuperwall } from '@/hooks/useSuperwall';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import { SUPERWALL_TRIGGERS } from '@/config/superwall';
+import { SUPERWALL_TRIGGERS, SUPERWALL_PARAMS } from '@/config/superwall';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { MaterialCommunityIcons as IconType } from '@expo/vector-icons';
@@ -15,8 +15,23 @@ export default function FinalScreen() {
 
   const handleGetStarted = async () => {
     try {
-      await showPaywall(SUPERWALL_TRIGGERS.ONBOARDING);
-      setIsOnboarded(true);
+      // Pass dynamic parameters to the paywall
+      const paywallParams = {
+        // Pass subscription pricing information
+        monthly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.MONTHLY,
+        yearly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY,
+        monthly_equivalent: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY_MONTHLY_EQUIVALENT,
+        discount: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.DISCOUNT_PERCENTAGE,
+        trial_period: SUPERWALL_PARAMS.TRIAL_PERIOD,
+        // Add any other parameters needed for the paywall
+        current_date: new Date().toLocaleDateString(),
+      };
+      
+      const hasSubscription = await showPaywall(SUPERWALL_TRIGGERS.ONBOARDING, paywallParams);
+      
+      if (hasSubscription) {
+        setIsOnboarded(true);
+      }
     } catch (error) {
       console.error('Failed to show paywall:', error);
     }

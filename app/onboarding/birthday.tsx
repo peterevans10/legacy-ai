@@ -10,6 +10,8 @@ import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } fro
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useSuperwall } from '@/hooks/useSuperwall';
+import { SUPERWALL_TRIGGERS, SUPERWALL_PARAMS } from '@/config/superwall';
 
 const BackgroundPattern = () => {
   // Create a subtle leather/book texture effect
@@ -44,7 +46,8 @@ const BackgroundPattern = () => {
 export default function BirthdayScreen() {
   const router = useRouter();
   const [birthday, setBirthday] = useState('');
-  const { updateOnboardingData, saveUserProfile } = useOnboarding();
+  const { updateOnboardingData, saveUserProfile, onboardingData, setIsOnboarded } = useOnboarding();
+  const { showPaywall } = useSuperwall();
   const [loading, setLoading] = useState(false);
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
@@ -67,8 +70,60 @@ export default function BirthdayScreen() {
       // Save the complete user profile
       await saveUserProfile();
       
-      // Navigate to final screen
-      router.push('/onboarding/final');
+      // Show paywall directly instead of navigating to final screen
+      const paywallParams = {
+        // Pass user data for personalization
+        user_name: onboardingData.name || 'there',
+        // Pass subscription pricing information
+        monthly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.MONTHLY,
+        yearly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY,
+        monthly_equivalent: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY_MONTHLY_EQUIVALENT,
+        discount: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.DISCOUNT_PERCENTAGE,
+        trial_period: SUPERWALL_PARAMS.TRIAL_PERIOD,
+        // Add any other parameters needed for the paywall
+        current_date: new Date().toLocaleDateString(),
+      };
+      
+      try {
+        // Ensure the user is marked as onboarded before showing the paywall
+        // This is already done by saveUserProfile, but we'll do it again to be sure
+        await setIsOnboarded(true);
+        
+        // Show the paywall and wait for it to complete
+        console.log('[Birthday] Showing paywall...');
+        const hasSubscription = await showPaywall(SUPERWALL_TRIGGERS.ONBOARDING, paywallParams);
+        console.log('[Birthday] Paywall result:', hasSubscription);
+        
+        // Add a delay to ensure the paywall has time to appear
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Only navigate if the paywall has been dismissed or completed
+        console.log('[Birthday] Navigating to tabs...');
+        
+        // For debugging in development, show an alert before navigating
+        if (__DEV__) {
+          Alert.alert(
+            'Navigation',
+            'Navigating to tabs after paywall',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  router.replace('/(tabs)');
+                }
+              }
+            ]
+          );
+        } else {
+          router.replace('/(tabs)');
+        }
+      } catch (paywallError) {
+        console.error('[Birthday] Error showing paywall:', paywallError);
+        Alert.alert(
+          'Paywall Error',
+          'There was an issue showing the subscription options. Please try again.'
+        );
+      }
     } catch (error) {
       console.error('Error saving profile:', error);
       Alert.alert(

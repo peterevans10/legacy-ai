@@ -7,15 +7,26 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useSuperwall } from '@/hooks/useSuperwall';
-import { SUPERWALL_TRIGGERS } from '@/config/superwall';
+import { SUPERWALL_TRIGGERS, SUPERWALL_PARAMS } from '@/config/superwall';
 import { Colors } from '@/constants/Colors';
 
 export default function TabTwoScreen() {
   const { isSubscribed, isLoading, showPaywall } = useSuperwall();
 
-  const handlePremiumFeature = () => {
+  const handlePremiumFeature = async () => {
     if (!isSubscribed && !isLoading) {
-      showPaywall(SUPERWALL_TRIGGERS.FEATURE_UNLOCK);
+      const paywallParams = {
+        monthly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.MONTHLY,
+        yearly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY,
+        monthly_equivalent: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY_MONTHLY_EQUIVALENT,
+        discount: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.DISCOUNT_PERCENTAGE,
+        trial_period: SUPERWALL_PARAMS.TRIAL_PERIOD,
+        feature_name: 'Premium Explorer',
+        feature_description: 'Access all premium features and content',
+        current_date: new Date().toLocaleDateString(),
+      };
+      
+      await showPaywall(SUPERWALL_TRIGGERS.FEATURE_UNLOCK, paywallParams);
     }
   };
 

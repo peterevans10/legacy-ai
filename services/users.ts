@@ -39,6 +39,22 @@ export const usersService = {
   },
 
   /**
+   * Get a user by phone number
+   */
+  async getUserByPhone(phoneNumber: string): Promise<UserProfile | null> {
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('phoneNumber', '==', phoneNumber));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    return userDoc.data() as UserProfile;
+  },
+
+  /**
    * Create or update a user profile
    */
   async saveProfile(profile: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {

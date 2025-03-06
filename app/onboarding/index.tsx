@@ -85,7 +85,7 @@ export default function WelcomeScreen() {
           onPress={handleNext}
         >
           <ThemedText style={styles.buttonText}>
-            Begin Your Legacy
+            Get Started
           </ThemedText>
         </TouchableOpacity>
       </SafeAreaView>

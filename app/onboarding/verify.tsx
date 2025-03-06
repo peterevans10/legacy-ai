@@ -11,11 +11,17 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display';
 import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { BackButton } from '@/components/BackButton';
+import { usersService } from '@/services/users';
+import { useSuperwall } from '@/hooks/useSuperwall';
+import { SUPERWALL_TRIGGERS, SUPERWALL_PARAMS } from '@/config/superwall';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 export default function VerifyScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { confirmCode, phoneNumber, signInWithPhoneNumber } = useAuth();
+  const { showPaywall, checkSubscription } = useSuperwall();
+  const { setIsOnboarded } = useOnboarding();
   const [code, setCode] = useState('');
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
@@ -32,8 +38,76 @@ export default function VerifyScreen() {
 
     try {
       setIsLoading(true);
+      
+      // First confirm the code to authenticate the user
       await confirmCode(code);
-      router.push('/onboarding/name');
+      
+      // Now that we're authenticated, check if user exists
+      const user = await usersService.getCurrentProfile();
+      
+      if (user) {
+        // User exists, show paywall directly and redirect to home if subscribed
+        // Pass dynamic parameters to the paywall
+        const paywallParams = {
+          // Pass user data for personalization
+          user_name: user.name || 'there',
+          // Pass subscription pricing information
+          monthly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.MONTHLY,
+          yearly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY,
+          monthly_equivalent: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY_MONTHLY_EQUIVALENT,
+          discount: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.DISCOUNT_PERCENTAGE,
+          trial_period: SUPERWALL_PARAMS.TRIAL_PERIOD,
+          // Add any other parameters needed for the paywall
+          current_date: new Date().toLocaleDateString(),
+        };
+        
+        try {
+          // Mark the user as onboarded before showing the paywall
+          // This ensures they won't be redirected back to onboarding
+          await setIsOnboarded(true);
+          
+          // Show the paywall and wait for it to complete
+          console.log('[Verify] Showing paywall...');
+          const hasSubscription = await showPaywall(SUPERWALL_TRIGGERS.ONBOARDING, paywallParams);
+          console.log('[Verify] Paywall result:', hasSubscription);
+          
+          // Add a delay to ensure the paywall has time to appear
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Double check subscription status
+          await checkSubscription();
+          
+          // Only navigate if the paywall has been dismissed or completed
+          console.log('[Verify] Navigating to tabs...');
+          
+          // For debugging in development, show an alert before navigating
+          if (__DEV__) {
+            Alert.alert(
+              'Navigation',
+              'Navigating to tabs after paywall',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    router.replace('/(tabs)');
+                  }
+                }
+              ]
+            );
+          } else {
+            router.replace('/(tabs)');
+          }
+        } catch (paywallError) {
+          console.error('[Verify] Error showing paywall:', paywallError);
+          Alert.alert(
+            'Paywall Error',
+            'There was an issue showing the subscription options. Please try again.'
+          );
+        }
+      } else {
+        // New user, continue onboarding
+        router.push('/onboarding/name');
+      }
     } catch (error) {
       console.error('Error verifying code:', error);
       Alert.alert('Error', 'Invalid verification code. Please try again.');
