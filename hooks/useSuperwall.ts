@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Platform, Alert } from 'react-native';
 import { SubscriptionStatus } from '@superwall/react-native-superwall';
 import { superwallService } from '@/services/superwall';
+import { SUPERWALL_TRIGGERS } from '@/config/superwall';
 
 export function useSuperwall() {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -52,13 +53,10 @@ export function useSuperwall() {
     try {
       console.log('[Superwall] Attempting to show paywall for trigger:', triggerId);
       
-      // Pass any dynamic parameters to the paywall
+      // Pass the trigger ID to the paywall service
       const result = await superwallService.presentPaywall(triggerId, params);
       
       console.log('[Superwall] Paywall presentation result:', result);
-      
-      // Add a small delay to ensure the paywall has time to appear
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Refresh subscription status after paywall interaction
       await checkSubscription();

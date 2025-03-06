@@ -1,137 +1,294 @@
-import { Image, StyleSheet, Platform, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { useSuperwall } from '@/hooks/useSuperwall';
-import { useOnboarding } from '@/contexts/OnboardingContext';
-import { useRouter } from 'expo-router';
-import { SUPERWALL_TRIGGERS, SUPERWALL_PARAMS } from '@/config/superwall';
+import React from 'react';
+import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HomeScreen() {
-  const { setIsOnboarded } = useOnboarding();
-  const { showPaywall } = useSuperwall();
-  const router = useRouter();
+  const colorScheme = useColorScheme() || 'light';
+  const textColor = Colors[colorScheme].text;
+  const backgroundColor = Colors[colorScheme].background;
 
-  const handleRestartOnboarding = async () => {
-    await setIsOnboarded(false);
-    router.push('/onboarding');
-  };
-
-  const handleShowPaywall = async () => {
-    // Pass dynamic parameters to the paywall
-    const paywallParams = {
-      // Pass subscription pricing information
-      monthly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.MONTHLY,
-      yearly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY,
-      monthly_equivalent: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY_MONTHLY_EQUIVALENT,
-      discount: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.DISCOUNT_PERCENTAGE,
-      trial_period: SUPERWALL_PARAMS.TRIAL_PERIOD,
-      // Add any other parameters needed for the paywall
-      current_date: new Date().toLocaleDateString(),
-    };
-    
-    await showPaywall(SUPERWALL_TRIGGERS.ONBOARDING, paywallParams);
-  };
+  // Mock data
+  const streakDays = 7;
+  const totalStories = 42;
+  const recentStories = [
+    { id: 1, question: "What was your first job?", date: "May 15, 2023", preview: "I started working at a local bookstore when I was 16. The owner, Mrs. Thompson, was a kind elderly woman who..." },
+    { id: 2, question: "What's your favorite family tradition?", date: "May 12, 2023", preview: "Every Christmas Eve, our entire family gathers to make homemade pasta. This tradition started with my grandmother who..." },
+    { id: 3, question: "What was your favorite childhood toy?", date: "May 10, 2023", preview: "I had a wooden train set that my grandfather built for me. I would spend hours creating different track layouts and..." },
+  ];
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleShowPaywall}>
-          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-            Show Paywall
-          </ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={handleRestartOnboarding}>
-          <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
-            Restart Onboarding
-          </ThemedText>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: textColor }]}>Your Legacy</Text>
+        <TouchableOpacity style={styles.profileButton}>
+          <Image 
+            source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }} 
+            style={styles.profileImage} 
+          />
         </TouchableOpacity>
       </View>
-    </ParallaxScrollView>
+
+      {/* Streak Card */}
+      <LinearGradient
+        colors={['#0a7ea4', '#0a9ea4']}
+        style={styles.streakCard}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      >
+        <View style={styles.streakContent}>
+          <View>
+            <Text style={styles.streakTitle}>Current Streak</Text>
+            <Text style={styles.streakCount}>{streakDays} days</Text>
+          </View>
+          <View style={styles.streakIconContainer}>
+            <Ionicons name="flame" size={48} color="#FFF" />
+          </View>
+        </View>
+        <Text style={styles.streakSubtitle}>Keep answering daily to build your legacy!</Text>
+      </LinearGradient>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Today's Question Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Today's Question</Text>
+          <TouchableOpacity 
+            style={[styles.todayCard, { backgroundColor: colorScheme === 'dark' ? '#252525' : '#F5F5F5' }]}
+          >
+            <Text style={[styles.todayQuestion, { color: textColor }]}>
+              What life lesson did you learn the hard way?
+            </Text>
+            <View style={styles.answerPrompt}>
+              <Ionicons name="create-outline" size={24} color={Colors[colorScheme].tint} />
+              <Text style={{ color: Colors[colorScheme].tint, marginLeft: 8, fontWeight: '500' }}>
+                Answer this question
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Library Overview */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Your Library</Text>
+            <TouchableOpacity>
+              <Text style={{ color: Colors[colorScheme].tint }}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.statsContainer}>
+            <View style={[styles.statCard, { backgroundColor: colorScheme === 'dark' ? '#252525' : '#F5F5F5' }]}>
+              <Text style={[styles.statCount, { color: textColor }]}>{totalStories}</Text>
+              <Text style={[styles.statLabel, { color: colorScheme === 'dark' ? '#CCC' : '#666' }]}>Total Stories</Text>
+            </View>
+            <View style={[styles.statCard, { backgroundColor: colorScheme === 'dark' ? '#252525' : '#F5F5F5' }]}>
+              <Text style={[styles.statCount, { color: textColor }]}>12</Text>
+              <Text style={[styles.statLabel, { color: colorScheme === 'dark' ? '#CCC' : '#666' }]}>Categories</Text>
+            </View>
+            <View style={[styles.statCard, { backgroundColor: colorScheme === 'dark' ? '#252525' : '#F5F5F5' }]}>
+              <Text style={[styles.statCount, { color: textColor }]}>8</Text>
+              <Text style={[styles.statLabel, { color: colorScheme === 'dark' ? '#CCC' : '#666' }]}>Family Views</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Recent Stories */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Recent Stories</Text>
+            <TouchableOpacity>
+              <Text style={{ color: Colors[colorScheme].tint }}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {recentStories.map(story => (
+            <TouchableOpacity 
+              key={story.id}
+              style={[styles.storyCard, { backgroundColor: colorScheme === 'dark' ? '#252525' : '#F5F5F5' }]}
+            >
+              <Text style={[styles.storyDate, { color: colorScheme === 'dark' ? '#CCC' : '#666' }]}>{story.date}</Text>
+              <Text style={[styles.storyQuestion, { color: textColor }]}>{story.question}</Text>
+              <Text 
+                style={[styles.storyPreview, { color: colorScheme === 'dark' ? '#AAA' : '#444' }]}
+                numberOfLines={2}
+              >
+                {story.preview}
+              </Text>
+              <View style={styles.storyFooter}>
+                <TouchableOpacity style={styles.storyAction}>
+                  <Ionicons name="share-outline" size={20} color={Colors[colorScheme].tint} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.storyAction}>
+                  <Ionicons name="heart-outline" size={20} color={Colors[colorScheme].tint} />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  profileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+  },
+  streakCard: {
+    margin: 20,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  streakContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  streakTitle: {
+    color: '#FFF',
+    fontSize: 16,
+    opacity: 0.9,
+  },
+  streakCount: {
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  streakSubtitle: {
+    color: '#FFF',
+    marginTop: 10,
+    opacity: 0.9,
+  },
+  streakIconContainer: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 30,
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  section: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  todayCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  todayQuestion: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  answerPrompt: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  statCount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+  },
+  storyCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  storyDate: {
+    fontSize: 12,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  storyQuestion: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  buttonContainer: {
-    marginTop: 24,
-    gap: 12,
+  storyPreview: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
   },
-  button: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    backgroundColor: '#0A7EA4',
+  storyFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
-  buttonText: {
-    color: 'white',
-  },
-  secondaryButton: {
-    backgroundColor: '#0A7EA420',
-  },
-  secondaryButtonText: {
-    color: '#0A7EA4',
+  storyAction: {
+    marginLeft: 16,
   },
 });

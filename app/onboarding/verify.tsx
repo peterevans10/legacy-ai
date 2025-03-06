@@ -55,15 +55,30 @@ export default function VerifyScreen() {
           monthly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.MONTHLY,
           yearly_price: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY,
           monthly_equivalent: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.YEARLY_MONTHLY_EQUIVALENT,
-          discount: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.DISCOUNT_PERCENTAGE,
+          discount_percentage: SUPERWALL_PARAMS.SUBSCRIPTION_PRICE.DISCOUNT_PERCENTAGE,
           trial_period: SUPERWALL_PARAMS.TRIAL_PERIOD,
+          // Product IDs
+          monthly_product_id: SUPERWALL_PARAMS.PRODUCT_IDS.MONTHLY,
+          yearly_product_id: SUPERWALL_PARAMS.PRODUCT_IDS.YEARLY,
+          lifetime_product_id: SUPERWALL_PARAMS.PRODUCT_IDS.LIFETIME,
+          // Features
+          feature_1: SUPERWALL_PARAMS.FEATURES[0],
+          feature_2: SUPERWALL_PARAMS.FEATURES[1],
+          feature_3: SUPERWALL_PARAMS.FEATURES[2],
+          feature_4: SUPERWALL_PARAMS.FEATURES[3],
           // Add any other parameters needed for the paywall
           current_date: new Date().toLocaleDateString(),
+          // Add page navigation parameters
+          page: "1",
+          total_pages: "3",
+          is_last_page: "false",
+          is_first_page: "true",
+          // Development mode flags
+          is_development: __DEV__ ? "true" : "false",
         };
         
         try {
-          // Mark the user as onboarded before showing the paywall
-          // This ensures they won't be redirected back to onboarding
+          // Ensure the user is marked as onboarded before showing the paywall
           await setIsOnboarded(true);
           
           // Show the paywall and wait for it to complete
@@ -71,32 +86,11 @@ export default function VerifyScreen() {
           const hasSubscription = await showPaywall(SUPERWALL_TRIGGERS.ONBOARDING, paywallParams);
           console.log('[Verify] Paywall result:', hasSubscription);
           
-          // Add a delay to ensure the paywall has time to appear
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Double check subscription status
-          await checkSubscription();
-          
           // Only navigate if the paywall has been dismissed or completed
           console.log('[Verify] Navigating to tabs...');
           
-          // For debugging in development, show an alert before navigating
-          if (__DEV__) {
-            Alert.alert(
-              'Navigation',
-              'Navigating to tabs after paywall',
-              [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                    router.replace('/(tabs)');
-                  }
-                }
-              ]
-            );
-          } else {
-            router.replace('/(tabs)');
-          }
+          // Navigate to the main app
+          router.replace('/(tabs)');
         } catch (paywallError) {
           console.error('[Verify] Error showing paywall:', paywallError);
           Alert.alert(
