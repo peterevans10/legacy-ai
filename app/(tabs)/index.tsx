@@ -2,11 +2,12 @@ import React, { useRef, useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, View, Text, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() || 'light';
@@ -30,6 +31,9 @@ export default function HomeScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
+
+  // Animation for hourglass
+  const hourglassAnim = useRef(new Animated.Value(0)).current;
 
   // Sample data
   const streakDays = 7;
@@ -88,6 +92,22 @@ export default function HomeScreen() {
         useNativeDriver: true,
       })
     ]).start();
+
+    // Set up hourglass animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(hourglassAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(hourglassAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   return (
@@ -253,7 +273,9 @@ export default function HomeScreen() {
                             </View>
                           )}
                           
-                          <Text style={styles.bookSpine} numberOfLines={1}>{bookTitle[i]}</Text>
+                          <View style={styles.bookTitleContainer}>
+                            <Text style={styles.bookSpine} numberOfLines={1}>{i === 0 ? "Childhood" : i === 1 ? "Family" : i === 2 ? "Travel" : i === 3 ? "Love" : "Struggle"}</Text>
+                          </View>
                           
                           {/* Book details */}
                           {Math.random() > 0.5 && (
@@ -296,33 +318,43 @@ export default function HomeScreen() {
           {/* Today's Question Header */}
           <Text style={[styles.sectionHeader, { color: textColor }]}>Today's Question</Text>
           
-          {/* Today's Question - Empty State with Arrow */}
+          {/* Today's Question - Empty State with Shaking Hourglass */}
           <Animated.View style={{ 
             opacity: fadeAnim, 
             transform: [{ translateY: slideAnim }]
           }}>
-            <View style={[styles.sectionCard, { backgroundColor: cardBackground }]}>
-              <View style={styles.emptyQuestionContainer}>
-                <Text style={[styles.emptyQuestionText, { color: colorScheme === 'dark' ? '#AAA' : '#666' }]}>
-                  You haven't answered today's question yet
+            <View style={[
+              styles.sectionCard, 
+              { 
+                backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#F0EBE0',
+                borderWidth: 1,
+                borderColor: 'rgba(212, 175, 55, 0.3)'
+              }
+            ]}>
+              <View style={styles.questionTitleContainer}>
+                <Text style={[styles.questionTitle, { color: textColor }]}>
+                  Answer your daily reflection
                 </Text>
-                
-                <View style={styles.arrowContainer}>
-                  <Text style={[styles.arrowText, { color: goldPrimary }]}>
-                    Tap the + button to answer
-                  </Text>
-                  <View style={styles.arrowWrapper}>
-                    <Ionicons 
-                      name="arrow-down" 
-                      size={24} 
-                      color={goldPrimary} 
-                      style={styles.arrowIcon}
-                    />
-                  </View>
-                </View>
-                
-                <Text style={[styles.questionPreview, { color: textColor }]}>
-                  "{todaysQuestion}"
+              </View>
+              
+              <View style={[styles.timeContainer, { backgroundColor: 'rgba(212, 175, 55, 0.1)' }]}>
+                <Animated.Text 
+                  style={[
+                    styles.hourglassEmoji, 
+                    { 
+                      transform: [
+                        { rotate: hourglassAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0deg', '30deg']
+                        })},
+                      ] 
+                    }
+                  ]}
+                >
+                  ⏳
+                </Animated.Text>
+                <Text style={[styles.timeText, { color: goldPrimary }]}>
+                  2 hours and 43 minutes left
                 </Text>
               </View>
             </View>
@@ -365,7 +397,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   logoText: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '600',
     fontFamily: 'serif',
   },
@@ -556,6 +588,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 1,
   },
+  bookTitleContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   bookSpine: {
     color: '#FFF',
     fontSize: 10,
@@ -648,32 +687,68 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     minHeight: 180,
   },
-  emptyQuestionText: {
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  arrowContainer: {
-    alignItems: 'center',
+  emptyQuestionTextBold: {
+    fontSize: 20,
+    fontWeight: 'bold',
     marginBottom: 20,
-  },
-  arrowText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  arrowWrapper: {
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-    borderRadius: 20,
-    padding: 8,
-  },
-  arrowIcon: {
-    transform: [{ translateY: 2 }],
-  },
-  questionPreview: {
-    fontSize: 16,
-    fontStyle: 'italic',
     textAlign: 'center',
     paddingHorizontal: 20,
     fontFamily: 'serif',
+  },
+  emptyQuestionText: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  arrowContainer: {
+    width: '100%',
+    height: 80,
+    alignItems: 'center',
+  },
+  arrowTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  arrowText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
+  },
+  arrowEmoji: {
+    fontSize: 24,
+    color: '#D4AF37',
+    letterSpacing: 8,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  hourglassEmoji: {
+    fontSize: 24,
+    marginRight: 10,
+  },
+  timeText: {
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  questionTitleContainer: {
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  questionTitlePrefix: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  questionTitle: {
+    fontSize: 20,
+    fontFamily: 'serif',
+    letterSpacing: 0.5,
   },
 });
